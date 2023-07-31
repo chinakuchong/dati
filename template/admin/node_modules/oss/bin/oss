@@ -1,0 +1,340 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var util = require('util');
+var config = require('../config.js');
+var ossClient = require('../lib/oss');
+var key = require('../key');
+
+if(typeof key.accessId == "undefined" || typeof key.accessKey == "undefined"){
+	throw new Error("accessId and accessKey are both required");
+}
+
+var client = new ossClient(key);
+
+var bucket = "";
+var object = "";
+
+var format_date = function (date) {
+  var year = date.getFullYear();
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
+  var hour = date.getHours();
+  var minute = date.getMinutes();
+  var second = date.getSeconds();
+  
+  //month = ((month < 10) ? '0' : '') + month;
+  //day = ((day < 10) ? '0' : '') + day;
+  hour = ((hour < 10) ? '0' : '') + hour;
+  minute = ((minute < 10) ? '0' : '') + minute;
+  second = ((second < 10) ? '0': '') + second;
+  
+  return year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
+};
+
+function putbucket(bucket){
+  client.create_bucket( {bucket : bucket},function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function setacl(bucket,acl){
+  acl = process.argv[4];
+  client.set_bucket_acl(
+  { bucket:bucket,
+    headers:{
+      "x-oss-acl":acl
+    }
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function listobject(bucket){
+  client.get_bucket({bucket:bucket},function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(util.inspect(results,true,null));
+    /*var objects = results['Contents'];
+    if(typeof objects.length != "undefined"){
+      for(var key in objects){
+        objects[key]['LastModified'] = format_date(new Date(objects[key]['LastModified']));
+        delete objects[key]['Owner'];
+      }
+      //console.log(util.inspect(results,true,null));
+      console.log(objects);
+    }else{
+      objects['LastModified'] = format_date(new Date(objects['LastModified']));
+      delete objects['Owner'];
+      console.log(objects);
+    }*/
+  })
+}
+
+function getacl(bucket){
+  client.get_bucket_acl({bucket:"fni_test"},function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(util.inspect(results,true,null));
+  })
+}
+
+function deletebucket(bucket){
+  client.get_bucket({bucket:bucket},function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    var contents = results['Contents'];
+    var objects = [];
+    for(var key in contents){
+      objects.push(contents[key]['Key']);
+    }
+    //console.log(objects);
+    client.delete_objects({
+      bucket:bucket,
+      objects:objects
+    },function(err,results){
+      if(err) {
+        console.error(err);
+        return;
+      }
+      console.log(results);
+      client.delete_bucket({bucket:bucket},function(err,results){
+        if(err) {
+          console.error(err);
+          return;
+        }
+        console.log("delete bucket operations");
+        console.log(results);
+      })
+    })
+  })
+}
+
+function putobject(bucket,ossObject,srcFile){
+  ossObject = process.argv[4];
+  srcFile = process.argv[5];
+  console.log('uploading...');
+  client.put_object(
+  { bucket : bucket,
+    object : ossObject ,
+    srcFile : srcFile
+  },function(err,results){
+      if(err) throw err;
+      console.log('\n---------');
+      console.log(results);
+    }
+  );
+}
+
+function getobject(bucket,ossObject,dstFile){
+  console.log('downloading...');
+  ossObject = process.argv[4];
+  dstFile = process.argv[5];
+  client.get_object({
+    bucket:bucket,
+    object:ossObject,
+    dstFile:dstFile
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function copyobject(srcBucket,srcObject,dstBucket,dstObject){
+  srcObject = process.argv[4];
+  dstBucket = process.argv[5];
+  dstObject = process.argv[6];
+  client.copy_object({
+    bucket:srcBucket,
+    object:srcObject,
+    copyBucket:dstBucket,
+    copyObject:dstObject
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function headobject(bucket,ossObject){
+  ossObject = process.argv[4];
+  client.head_object({
+    bucket:bucket,
+    object:ossObject
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function deleteobject(bucket,ossObject){
+  ossObject = process.argv[4];
+  client.delete_object({
+    bucket:bucket,
+    object:ossObject
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function deleteobjects(bucket,ossObjects){
+  ossObjects = process.argv.slice(4);
+  //console.log(ossObjects);
+  client.delete_objects({
+    bucket:bucket,
+    objects:ossObjects
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function multiputobject(bucket,ossObject,srcFile){
+  ossObject = process.argv[4];
+  srcFile = process.argv[5];
+  console.log('uploading...');
+  client.multipart_upload_object({
+    bucket:bucket,
+    object:ossObject,
+    srcFile:srcFile
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log("----------------complete-------------");
+    console.log(results);
+  })
+}
+
+function listmultiput(bucket){
+  client.list_multipart_uploads({
+    bucket:bucket
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function group(bucket,ossObject,objects){
+  ossObject = process.argv[4];
+  objects = process.argv.slice[5];
+  oss.create_object_group({
+    bucket:bucket,
+    object:ossObject,
+    objects:objects
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  })
+}
+
+function uploaddir(bucket,ossDir,srcDir){
+  ossDir = process.argv[4];
+  srcDir = process.argv[5] || '.';
+  oss.upload_objects_by_dir({
+    bucket:bucket,
+    ossDir:ossDir,
+    local:srcDir
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  });
+}
+
+function syncdir(bucket,ossDir,srcDir){
+  ossDir = process.argv[4];
+  srcDir = process.argv[5] || '.';
+  oss.sync_local_dir({
+    bucket:bucket,
+    ossDir:ossDir,
+    local:srcDir
+  },function(err,results){
+    if(err) {
+      console.error(err);
+      return;
+    }
+    console.log(results);
+  });
+}
+
+program
+  .version(config.OSS_VERSION)
+  .option('-v, --version', 'output the version number')
+  .option('-p, --putbucket <bucket>', 'create a new bucket',putbucket)
+  .option('-l, --listbucket', 'list buckets')
+  .option('-s, --setacl <bucket> <acl>', 'set bucket acl',setacl)
+  .option('-L, --listobject <bucket>', 'list objects',listobject)
+  .option('-g, --getacl <bucket>', 'get bucket acl',getacl)
+  .option('-d, --deletebucket <bucket>', 'delete bucket',deletebucket)//删除bucket里面的文件，然后再删除bucket
+  .option('-P, --putobject <bucket> <ossObject> <srcFile>', 'simple put object to oss',putobject)
+  .option('-G, --getobject <bucket> <ossObject> <dstFile>', 'get object from oss to local dstFile',getobject)
+  .option('-C, --copyobject <srcBucket> <srcObject> <dstBucket> <dstObject>', 'copy object in oss',copyobject)
+  .option('-H, --headobject <bucket> <ossObject>', 'get object meta info',headobject)
+  .option('-D, --deleteobject <bucket> <ossObject>', 'delete object in oss',deleteobject)
+  .option('-x, --deleteobjects <bucket> <ossObjects>', 'delete objects in oss',deleteobjects)
+  .option('-m, --multiputobject <bucket> <ossObject> <srcFile>', 'multipart upload object to oss',multiputobject)
+  .option('-S, --listmultiput <bucket>', 'list multipart uploads',listmultiput)
+  .option('-n, --group <bucket> <ossObject> <ossObjects>', 'post object group',group)
+  .option('-u, --uploaddir <bucket> <ossDir> <srcDir>', 'upload local dir files to a oss dir in a bucket',uploaddir)
+  .option('-U, --syncdir <bucket> <ossDir> <srcDir>', 'sync local dir files to a oss dir in a bucket',syncdir)
+  .option('-c, --copyright ', 'show oss command line copyright');
+
+program.parse(process.argv);
+
+
+if(program.listbucket){
+  client.list_bucket(function(err,results){
+    console.log(util.inspect(results,true,null));
+    /*var buckets = results['ListAllMyBucketsResult']['Buckets']['Bucket'];
+    for(var key in buckets){
+      console.log(buckets[key]['Name']);
+    }*/
+  });
+}
+
+if(program.copyright){
+  (function(){
+    console.log("  oss commander line tool");
+    console.log("  Copyright(c) 2012 fantaysni <fantasyni@163.com>");
+    console.log("  MIT Licensed" + "  version:" + config.OSS_VERSION);
+  })();
+}

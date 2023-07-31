@@ -1,9 +1,0 @@
-    /**
-     * 列表
-     * @date {%date%}
-     * @return \think\Response
-     */
-    public function index()
-    {
-        return app('json')->success($this->service->getCrudListIndex());
-    }

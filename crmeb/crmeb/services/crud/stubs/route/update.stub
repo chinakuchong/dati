@@ -1,1 +1,0 @@
-Route::put('{%route%}/:id', 'crud.{%routePath%}{%controller%}/update')->option(['real_name' => '{%menus%}修改接口']);

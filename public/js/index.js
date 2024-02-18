@@ -9,11 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', () => {
         if (window.innerHeight + window.scrollY+100 >= document.body.offsetHeight) {
             if(isRun){
-                console.log('aaa');
                 setTimeout(function() {
                     fetchImages();
                     isRun=true;
-                    console.log('bbb');
                 }, 300);
                 isRun = false;
             }

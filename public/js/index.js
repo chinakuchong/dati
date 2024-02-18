@@ -1,14 +1,22 @@
 // index.js
 
 let page = 1;
+var isRun=true;
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchImages();
 
     window.addEventListener('scroll', () => {
         if (window.innerHeight + window.scrollY+100 >= document.body.offsetHeight) {
-            page++;
-            fetchImages();
+            if(isRun){
+                console.log('aaa');
+                setTimeout(function() {
+                    fetchImages();
+                    isRun=true;
+                    console.log('bbb');
+                }, 300);
+                isRun = false;
+            }
         }
     });
 });
@@ -29,6 +37,8 @@ function fetchImages() {
                 }
                 document.querySelector('#imglist ul').insertAdjacentHTML('beforeend', con);
                 addEvent(document.querySelectorAll('#imglist li'));
+                page++;
+
             }
         })
         .catch(error => console.error('Error fetching images:', error));

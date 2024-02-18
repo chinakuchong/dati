@@ -1,0 +1,60 @@
+body{
+  margin:0;
+  padding:0;
+}
+
+.content{
+  display: flex;
+  width:935px;
+  justify-content: space-between;
+
+}
+
+/*top*/
+.topbar{
+  width:100%;
+  border-bottom: 1px solid rgb(221 221 221);
+  height:59px;
+  justify-content: center;
+  align-items: center;  
+  display: flex;  
+}
+.top{
+  padding:0 20px;
+
+
+}
+.top_right{
+  display: flex;
+}
+.top_btn{
+  display: flex;
+  width:72.88px;
+  height:32px;
+  font-family:' "system-ui", "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  font-size:14px;  
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+a:-webkit-any-link {
+  text-decoration: none;
+}
+.login_btn{
+  background-color: rgb(0, 149, 246);
+  color:white;
+}
+.sign_btn{
+  color:rgb(0, 149, 246);
+}
+
+
+@media (max-width: 735px){
+  
+}
+
+@media (min-width: 736px){
+
+}
+
+

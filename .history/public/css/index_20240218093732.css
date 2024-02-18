@@ -1,0 +1,39 @@
+body{
+  margin:0;
+  padding:0;
+}
+
+.content{
+  display: flex;
+  width:935px;
+}
+
+/*top*/
+.topbar{
+  width:100%;
+  border-bottom: 1px solid rgb(221 221 221);
+
+}
+.top{
+  padding:0 20px;
+}
+.login_btn{
+  width:72.88px;
+  height:32px;
+  font-family:' "system-ui", "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  font-size:14px;
+}
+.sign_btn{
+
+}
+
+
+@media (max-width: 735px){
+  
+}
+
+@media (min-width: 736px){
+
+}
+
+
